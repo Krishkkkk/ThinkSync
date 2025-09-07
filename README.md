@@ -1,4 +1,5 @@
-# 💡 IdeaMatch
+# 💡 ThinkSync
+
 
 A simple, swipe-based **idea matching** web app where users can submit ideas and browse through others’ ideas Tinder-style. Built entirely with HTML, CSS and JavaScript — no back-end required.
 
