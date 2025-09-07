@@ -16,7 +16,3 @@ A simple, swipe-based **idea matching** web app where users can submit ideas and
 
 ## 🚀 Getting Started
 
-### 1. Clone or download
-```bash
-git clone https://github.com/yourusername/ideamatch.git
-cd ideamatch
