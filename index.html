@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IdeaMatch - Violet & Indigo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #8A2BE2 0%, #4B0082 100%);
+            min-height: 100vh; color: white; overflow-x: hidden;
+        }
+        .container { max-width: 400px; margin: 0 auto; padding: 20px; min-height: 100vh; }
+        .header { text-align: center; margin-bottom: 30px; padding: 20px 0; }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #DDA0DD, #9370DB);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            text-shadow: 0 2px 10px rgba(138, 43, 226, 0.3);
+        }
+        .user-setup { background: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(221, 160, 221, 0.3); text-align: center; }
+        .user-setup h2 { color: #DDA0DD; margin-bottom: 20px; }
+        .user-info { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 30px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; }
+        .user-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(45deg, #9370DB, #8A2BE2); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 30px; }
+        .nav-btn { flex: 1; padding: 15px; border: none; background: linear-gradient(45deg, #663399, #4B0082); color: white; border-radius: 15px; cursor: pointer; transition: all 0.3s ease; font-size: 14px; font-weight: bold; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+        .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 51, 153, 0.4); }
+        .nav-btn.active { background: linear-gradient(45deg, #9370DB, #DDA0DD); }
+        .page { display: none; animation: fadeIn 0.5s ease-in; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; color: #DDA0DD; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 15px; border: 2px solid rgba(221, 160, 221, 0.3); border-radius: 15px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 16px; transition: all 0.3s ease; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #DDA0DD; box-shadow: 0 0 15px rgba(221, 160, 221, 0.3); }
+        .form-group input::placeholder, .form-group textarea::placeholder { color: rgba(255, 255, 255, 0.6); }
+        .submit-btn { width: 100%; padding: 18px; border: none; background: linear-gradient(45deg, #9370DB, #8A2BE2); color: white; border-radius: 15px; cursor: pointer; font-size: 18px; font-weight: bold; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(147, 112, 219, 0.4); }
+        .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(147, 112, 219, 0.6); }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .add-idea-form { background: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(221, 160, 221, 0.3); }
+        .ideas-list { max-height: 400px; overflow-y: auto; margin-bottom: 20px; }
+        .idea-item { background: rgba(255, 255, 255, 0.1); padding: 15px; margin-bottom: 10px; border-radius: 15px; border-left: 4px solid #DDA0DD; backdrop-filter: blur(5px); }
+        .idea-item h4 { color: #DDA0DD; margin-bottom: 5px; }
+        .idea-item .author { font-size: 12px; opacity: 0.7; margin-top: 8px; }
+        .swipe-container { position: relative; height: 500px; overflow: hidden; border-radius: 20px; background: rgba(255, 255, 255, 0.05); }
+        .swipe-card { position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(147, 112, 219, 0.9), rgba(138, 43, 226, 0.9)); border-radius: 20px; padding: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: grab; transition: transform 0.3s ease, opacity 0.3s ease; border: 2px solid rgba(221, 160, 221, 0.3); backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        .swipe-card.dragging { cursor: grabbing; }
+        .swipe-card h3 { font-size: 24px; margin-bottom: 20px; color: #DDA0DD; }
+        .swipe-card p { font-size: 16px; line-height: 1.6; opacity: 0.9; }
+        .swipe-card .author-info { margin-top: 20px; font-size: 14px; opacity: 0.7; padding: 8px 15px; background: rgba(0, 0, 0, 0.2); border-radius: 20px; }
+        .swipe-instructions { text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 15px; border: 1px solid rgba(221, 160, 221, 0.3); }
+        .swipe-buttons { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
+        .swipe-btn { width: 60px; height: 60px; border: none; border-radius: 50%; cursor: pointer; font-size: 24px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+        .reject-btn { background: linear-gradient(45deg, #DC143C, #B22222); color: white; }
+        .accept-btn { background: linear-gradient(45deg, #32CD32, #228B22); color: white; }
+        .swipe-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); }
+        .matched-ideas { background: rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(221, 160, 221, 0.3); }
+        .match-item { background: linear-gradient(45deg, rgba(50, 205, 50, 0.2), rgba(34, 139, 34, 0.2)); padding: 20px; margin-bottom: 15px; border-radius: 15px; border: 2px solid rgba(50, 205, 50, 0.3); }
+        .match-item h4 { color: #90EE90; margin-bottom: 10px; font-size: 18px; }
+        .match-item p { opacity: 0.9; line-height: 1.5; }
+        .match-item .match-info { margin-top: 10px; font-size: 14px; opacity: 0.8; }
+        .no-ideas, .no-matches { text-align: center; padding: 40px; opacity: 0.7; font-style: italic; }
+        .status-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 80px; font-weight: bold; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; z-index: 10; }
+        .status-indicator.like { color: #32CD32; }
+        .status-indicator.nope { color: #DC143C; }
+        .status-indicator.show { opacity: 0.8; }
+        .loading { text-align: center; padding: 40px; opacity: 0.7; }
+        .error { background: rgba(220, 20, 60, 0.2); border: 1px solid rgba(220, 20, 60, 0.4); padding: 15px; border-radius: 10px; margin: 20px 0; color: #FFB6C1; }
+        .success { background: rgba(50, 205, 50, 0.2); border: 1px solid rgba(50, 205, 50, 0.4); padding: 15px; border-radius: 10px; margin: 20px 0; color: #90EE90; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>IdeaMatch</h1>
+        </div>
+
+        <!-- User Setup Screen -->
+        <div id="user-setup" class="user-setup">
+            <h2>👋 Welcome to IdeaMatch!</h2>
+            <p>Enter your name to start matching ideas with others:</p>
+            <div class="form-group">
+                <input type="text" id="user-name-input" placeholder="Enter your name..." maxlength="30" onkeypress="if(event.key==='Enter') enterApp()" />
+            </div>
+            <button class="submit-btn" onclick="enterApp()">Start Matching</button>
+            <div id="user-status"></div>
+        </div>
+
+        <!-- Main App -->
+        <div id="main-app" style="display: none;">
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar"></div>
+                <div>
+                    <div style="font-weight: bold;" id="user-display-name"></div>
+                    <div style="font-size: 12px; opacity: 0.7;">Online & Ready</div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showPage('add-ideas')">Add Ideas</button>
+                <button class="nav-btn" onclick="showPage('matching')">Start Matching</button>
+                <button class="nav-btn" onclick="showPage('matches')">Matches</button>
+            </div>
+
+            <div id="add-ideas" class="page active">
+                <div class="add-idea-form">
+                    <div class="form-group">
+                        <label for="idea-title">Idea Title:</label>
+                        <input type="text" id="idea-title" placeholder="Enter your idea title..." maxlength="50" />
+                    </div>
+                    <div class="form-group">
+                        <label for="idea-description">Description:</label>
+                        <textarea id="idea-description" rows="4" placeholder="Describe your idea in detail..." maxlength="500"></textarea>
+                    </div>
+                    <button class="submit-btn" onclick="addIdea()" id="add-idea-btn">Add Idea</button>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px; color: #DDA0DD;">All Ideas:</h3>
+                    <div id="ideas-list" class="ideas-list">
+                        <div class="loading">Loading ideas...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="matching" class="page">
+                <div class="swipe-instructions">
+                    <h3 style="color: #DDA0DD; margin-bottom: 10px;">Swipe to Match Ideas!</h3>
+                    <p>Swipe right (or click ✓) to like an idea<br />Swipe left (or click ✗) to pass</p>
+                </div>
+
+                <div class="swipe-container">
+                    <div class="status-indicator" id="status-indicator"></div>
+                    <div id="swipe-cards">
+                        <div class="loading">Loading ideas to swipe...</div>
+                    </div>
+                </div>
+
+                <div class="swipe-buttons">
+                    <button class="swipe-btn reject-btn" onclick="swipeLeft()">✗</button>
+                    <button class="swipe-btn accept-btn" onclick="swipeRight()">✓</button>
+                </div>
+            </div>
+
+            <div id="matches" class="page">
+                <div class="matched-ideas">
+                    <h3 style="margin-bottom: 20px; color: #DDA0DD;">Matched Ideas</h3>
+                    <div id="matches-list">
+                        <div class="loading">Loading matches...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, onSnapshot, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: 'AIzaSyASv0r4fjYAMQAEngdEelIE4kMrSs_1hz0',
+            authDomain: 'dateidea-64a87.firebaseapp.com',
+            projectId: 'dateidea-64a87',
+            storageBucket: 'dateidea-64a87.firebasestorage.app',
+            messagingSenderId: '322722926405',
+            appId: '1:322722926405:web:9edb0e332e05d33019f82c',
+            measurementId: 'G-MFXY5EJEPX'
+        };
+
+        // Initialize Firebase
+        try {
+            window.firebaseApp = initializeApp(firebaseConfig);
+            window.db = getFirestore(window.firebaseApp);
+            console.log('Firebase initialized successfully! 🎉');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            alert('Error initializing Firebase. Please check the console.');
+        }
+
+        // Global state
+        window.currentUser = null;
+        window.currentPage = 'add-ideas';
+        window.currentCardIndex = 0;
+        window.allIdeas = [];
+        window.unsubscribeIdeas = null;
+        window.unsubscribeSwipes = null;
+        let cleanupSwipeHandlers = null; // to prevent duplicate listeners
+
+        // Enter app with username
+        window.enterApp = function () {
+            const nameInput = document.getElementById('user-name-input').value.trim();
+            const statusDiv = document.getElementById('user-status');
+
+            if (!nameInput) {
+                statusDiv.innerHTML = '<div class="error">Please enter your name.</div>';
+                return;
+            }
+            if (!window.db) {
+                statusDiv.innerHTML = '<div class="error">Firebase not initialized.</div>';
+                return;
+            }
+
+            window.currentUser = { name: nameInput, id: Date.now() + Math.random(), avatar: nameInput.charAt(0).toUpperCase() };
+
+            // Update UI
+            document.getElementById('user-avatar').textContent = window.currentUser.avatar;
+            document.getElementById('user-display-name').textContent = window.currentUser.name;
+
+            // Hide setup and show main app
+            document.getElementById('user-setup').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+
+            // Initialize real-time listeners
+            initializeRealtimeListeners();
+            showPage('add-ideas');
+        };
+
+        // Initialize real-time listeners
+        function initializeRealtimeListeners() {
+            const ideasCollection = collection(window.db, 'ideas');
+            if (window.unsubscribeIdeas) window.unsubscribeIdeas();
+            window.unsubscribeIdeas = onSnapshot(
+                ideasCollection,
+                (snapshot) => {
+                    window.allIdeas = [];
+                    snapshot.forEach((d) => {
+                        window.allIdeas.push({ id: d.id, ...d.data() });
+                    });
+
+                    if (window.currentPage === 'add-ideas') {
+                        updateIdeasList();
+                    } else if (window.currentPage === 'matching') {
+                        initializeMatching();
+                    } else if (window.currentPage === 'matches') {
+                        updateMatches();
+                    }
+                },
+                (error) => {
+                    console.error('Error listening to ideas:', error);
+                }
+            );
+        }
+
+        // Show page
+        window.showPage = function (pageId) {
+            window.currentPage = pageId;
+            document.querySelectorAll('.page').forEach((page) => page.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach((btn) => btn.classList.remove('active'));
+
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-btn')[getPageIndex(pageId)].classList.add('active');
+
+            if (pageId === 'matching') {
+                initializeMatching();
+            } else if (pageId === 'matches') {
+                updateMatches();
+            } else if (pageId === 'add-ideas') {
+                updateIdeasList();
+            }
+        };
+
+        function getPageIndex(pageId) {
+            const pages = ['add-ideas', 'matching', 'matches'];
+            return pages.indexOf(pageId);
+        }
+
+        // Add idea to Firebase
+        window.addIdea = async function () {
+            const title = document.getElementById('idea-title').value.trim();
+            const description = document.getElementById('idea-description').value.trim();
+            const addBtn = document.getElementById('add-idea-btn');
+
+            if (!title || !description) {
+                alert('Please fill in both title and description!');
+                return;
+            }
+            if (!window.db || !window.currentUser) {
+                alert('Please complete setup first!');
+                return;
+            }
+
+            addBtn.disabled = true;
+            addBtn.textContent = 'Adding...';
+
+            try {
+                await addDoc(collection(window.db, 'ideas'), {
+                    title: title,
+                    description: description,
+                    author: window.currentUser.name,
+                    authorId: window.currentUser.id,
+                    timestamp: new Date().toISOString(),
+                    createdAt: Date.now()
+                });
+
+                document.getElementById('idea-title').value = '';
+                document.getElementById('idea-description').value = '';
+
+                // If user is on Matching, refresh immediately so first idea appears
+                if (window.currentPage === 'matching') {
+                    initializeMatching();
+                }
+            } catch (error) {
+                console.error('Error adding idea:', error);
+                alert('Error adding idea. Please try again.');
+            } finally {
+                addBtn.disabled = false;
+                addBtn.textContent = 'Add Idea';
+            }
+        };
+
+        // Update ideas list
+        function updateIdeasList() {
+            const listElement = document.getElementById('ideas-list');
+
+            if (!window.allIdeas || window.allIdeas.length === 0) {
+                listElement.innerHTML = '<div class="no-ideas">No ideas yet. Be the first to add one!</div>';
+                return;
+            }
+
+            const sortedIdeas = [...window.allIdeas].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            listElement.innerHTML = sortedIdeas
+                .map(
+                    (idea) => `
+                <div class="idea-item">
+                    <h4>${idea.title ?? ''}</h4>
+                    <p>${idea.description ?? ''}</p>
+                    <div class="author">by ${idea.author ?? 'Unknown'}</div>
+                </div>`
+                )
+                .join('');
+        }
+
+        // Initialize matching
+        function initializeMatching() {
+            window.currentCardIndex = 0;
+            displayCurrentCard();
+        }
+
+        // Display current card
+        function displayCurrentCard() {
+            const cardsContainer = document.getElementById('swipe-cards');
+
+            // Clean up any previous swipe listeners
+            if (typeof cleanupSwipeHandlers === 'function') {
+                cleanupSwipeHandlers();
+                cleanupSwipeHandlers = null;
+            }
+
+            if (!window.allIdeas || window.currentCardIndex >= window.allIdeas.length) {
+                cardsContainer.innerHTML = '<div class="no-ideas" style="padding: 100px 20px;">No more ideas to swipe! Check back later or add more ideas.</div>';
+                return;
+            }
+
+            const idea = window.allIdeas[window.currentCardIndex];
+            cardsContainer.innerHTML = `
+                <div class="swipe-card" id="current-card">
+                    <h3>${idea.title ?? ''}</h3>
+                    <p>${idea.description ?? ''}</p>
+                    <div class="author-info">by ${idea.author ?? 'Unknown'}</div>
+                </div>`;
+
+            setupSwipeGestures();
+        }
+
+        // Setup swipe gestures with cleanup to avoid duplicate listeners
+        function setupSwipeGestures() {
+            const card = document.getElementById('current-card');
+            const statusIndicator = document.getElementById('status-indicator');
+            if (!card) return;
+
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+
+            const onPointerDown = (e) => {
+                isDragging = true;
+                startX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+                card.classList.add('dragging');
+                card.style.transition = 'none';
+
+                window.addEventListener('pointermove', onPointerMove, { passive: false });
+                window.addEventListener('pointerup', onPointerUp);
+                window.addEventListener('touchmove', onTouchMove, { passive: false });
+                window.addEventListener('touchend', onPointerUp);
+            };
+
+            const onTouchMove = (e) => {
+                if (!isDragging) return;
+                const x = e.touches && e.touches[0] ? e.touches[0].clientX : 0;
+                moveCard(x);
+                e.preventDefault();
+            };
+
+            const onPointerMove = (e) => {
+                if (!isDragging) return;
+                moveCard(e.clientX);
+                e.preventDefault();
+            };
+
+            function moveCard(clientX) {
+                currentX = clientX - startX;
+                const rotation = currentX * 0.1;
+                card.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
+                card.style.opacity = String(1 - Math.min(Math.abs(currentX) / 300, 1));
+
+                if (Math.abs(currentX) > 50) {
+                    statusIndicator.textContent = currentX > 0 ? 'LIKE' : 'NOPE';
+                    statusIndicator.className = `status-indicator ${currentX > 0 ? 'like' : 'nope'} show`;
+                } else {
+                    statusIndicator.classList.remove('show');
+                }
+            }
+
+            const onPointerUp = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                card.classList.remove('dragging');
+                card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+
+                const threshold = 100;
+                if (Math.abs(currentX) > threshold) {
+                    performSwipe(currentX > 0);
+                } else {
+                    card.style.transform = '';
+                    card.style.opacity = '';
+                    statusIndicator.classList.remove('show');
+                }
+
+                // cleanup move/end listeners
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onPointerUp);
+            };
+
+            card.addEventListener('pointerdown', onPointerDown);
+            card.addEventListener('touchstart', onPointerDown);
+
+            // provide cleanup for when new card renders
+            cleanupSwipeHandlers = () => {
+                card.removeEventListener('pointerdown', onPointerDown);
+                card.removeEventListener('touchstart', onPointerDown);
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+                window.removeEventListener('touchmove', onTouchMove);
+                window.removeEventListener('touchend', onPointerUp);
+            };
+        }
+
+        // Swipe buttons
+        window.swipeLeft = function () { performSwipe(false); };
+        window.swipeRight = function () { performSwipe(true); };
+
+        // Perform swipe
+        async function performSwipe(isLike) {
+            if (window.currentCardIndex >= window.allIdeas.length) return;
+
+            const idea = window.allIdeas[window.currentCardIndex];
+            const card = document.getElementById('current-card');
+
+            if (card) {
+                card.style.transform = `translateX(${isLike ? '100%' : '-100%'}) rotate(${isLike ? '20deg' : '-20deg'})`;
+                card.style.opacity = '0';
+            }
+
+            try {
+                await addDoc(collection(window.db, 'swipes'), {
+                    ideaId: idea.id,
+                    userId: window.currentUser.id,
+                    userName: window.currentUser.name,
+                    isLike: isLike,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error('Error recording swipe:', error);
+            }
+
+            setTimeout(() => {
+                window.currentCardIndex++;
+                displayCurrentCard();
+                const si = document.getElementById('status-indicator');
+                si && si.classList.remove('show');
+            }, 300);
+        }
+
+        // Update matches
+        async function updateMatches() {
+            const matchesList = document.getElementById('matches-list');
+            matchesList.innerHTML = '<div class="loading">Loading matches...</div>';
+
+            try {
+                const swipesSnapshot = await getDocs(collection(window.db, 'swipes'));
+                const swipesByIdea = {};
+
+                swipesSnapshot.forEach((d) => {
+                    const swipe = d.data();
+                    if (!swipesByIdea[swipe.ideaId]) swipesByIdea[swipe.ideaId] = {};
+                    swipesByIdea[swipe.ideaId][swipe.userId] = swipe;
+                });
+
+                const matches = [];
+                for (const ideaId in swipesByIdea) {
+                    const likers = Object.values(swipesByIdea[ideaId]).filter((s) => s.isLike);
+                    if (likers.length >= 2) {
+                        const idea = window.allIdeas.find((i) => i.id === ideaId);
+                        if (idea) {
+                            matches.push({ ...idea, likers: likers.map((l) => l.userName) });
+                        }
+                    }
+                }
+
+                if (matches.length === 0) {
+                    matchesList.innerHTML = '<div class="no-matches">No matches yet. Start swiping to find mutual interests!</div>';
+                    return;
+                }
+
+                matchesList.innerHTML = matches
+                    .map(
+                        (match) => `
+                    <div class="match-item">
+                        <h4>🎉 ${match.title}</h4>
+                        <p>${match.description}</p>
+                        <div class="match-info">Originally by ${match.author} • Liked by: ${match.likers.join(', ')}</div>
+                    </div>`
+                    )
+                    .join('');
+            } catch (error) {
+                console.error('Error updating matches:', error);
+                matchesList.innerHTML = '<div class="error">Error loading matches. Please refresh.</div>';
+            }
+        }
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (typeof cleanupSwipeHandlers === 'function') cleanupSwipeHandlers();
+            if (window.unsubscribeIdeas) window.unsubscribeIdeas();
+            if (window.unsubscribeSwipes) window.unsubscribeSwipes();
+        });
+
+        console.log('IdeaMatch app ready! 🎉');
+    </script>
+</body>
+</html>
